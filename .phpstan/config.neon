@@ -1,0 +1,15 @@
+includes:
+  - ../vendor/phpstan/phpstan-phpunit/extension.neon
+  - cognitive-complexity.neon
+  - type-coverage.neon
+
+parameters:
+
+  level: max
+
+  checkMissingIterableValueType: false
+  reportUnmatchedIgnoredErrors: true
+  treatPhpDocTypesAsCertain: false
+
+  parallel:
+    processTimeout: 30.0

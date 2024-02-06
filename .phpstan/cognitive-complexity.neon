@@ -1,0 +1,2 @@
+includes:
+    - ../vendor/tomasvotruba/cognitive-complexity/config/extension.neon

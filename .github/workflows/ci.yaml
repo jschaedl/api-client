@@ -1,0 +1,75 @@
+on:
+  pull_request:
+  push:
+
+name: "CI"
+
+jobs:
+  coding-standards:
+    name: "Coding standards"
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          coverage: none
+
+      - name: "Install dependencies"
+        run: composer install --no-interaction --no-progress --optimize-autoloader
+
+      - name: "Check coding style"
+        run: make cs-check
+
+  static-code-analysis:
+    name: "Static code analysis"
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          coverage: none
+
+      - name: "Install dependencies"
+        run: composer install --no-interaction --no-progress --optimize-autoloader
+
+      - name: "Run static analysis"
+        run: make analyse
+
+  tests:
+    name: "Tests on PHP ${{ matrix.php-version }} ${{ matrix.prefer-lowest }}"
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ '8.2', '8.3' ]
+        prefer-lowest: ['', '--prefer-lowest --prefer-stable']
+        coverage-driver: [ 'xdebug' ]
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      - name: "Install dependencies"
+        run: composer update ${{ matrix.prefer-lowest }} --no-interaction --no-progress --optimize-autoloader
+
+      - name: "Run tests"
+        run: make tests
