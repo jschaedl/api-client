@@ -7,7 +7,6 @@ namespace Api;
 use Api\Request\Encoder\JsonRequestBodyEncoder;
 use Api\Request\Handler\AddHeaderHandler;
 use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\Header;
 use Api\Request\Method;
 use Api\Request\Request;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
@@ -26,8 +25,6 @@ use Symfony\Component\HttpClient\Psr18Client;
  * @uses \Api\Request\Encoder\JsonRequestBodyEncoder
  * @uses \Api\Response\Decoder\JsonResponseBodyDecoder
  * @uses \Api\Response\Response
- * @uses \Api\Request\IsGet
- * @uses \Api\Request\HasNoAdditionalHeaders
  * @uses \Api\Request\Header
  *
  * @group e2e
@@ -57,9 +54,9 @@ final class ClientsTest extends TestCase
             $streamFactory,
             'https://httpbin.org/',
             new ChainRequestHandler([
-                new AddHeaderHandler(new Header('Authorization', 'Bearer api_key')),
-                new AddHeaderHandler(new Header('Accept', 'application/json')),
-                new AddHeaderHandler(new Header('Content-Type', 'application/json')),
+                new AddHeaderHandler('Authorization', 'Bearer api_key'),
+                new AddHeaderHandler('Accept', 'application/json'),
+                new AddHeaderHandler('Content-Type', 'application/json'),
             ]),
             null,
             new JsonRequestBodyEncoder(),
