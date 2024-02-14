@@ -8,26 +8,21 @@ use Api\Client;
 use Api\Request\Encoder\JsonRequestBodyEncoder;
 use Api\Request\Handler\AddHeaderHandler;
 use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\HasNoRequestSpecificHeaders;
-use Api\Request\IsGet;
-use Api\Request\RequestInterface;
+use Api\Request\Header;
+use Api\Request\Request;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
 use Api\Response\ResponseInterface;
 use Symfony\Component\HttpClient\Psr18Client;
+use Api\Request\Method;
 
-final readonly class GetPaymentPointRequest implements RequestInterface
+final class GetPaymentPointRequest extends Request
 {
-    use IsGet;
-    use HasNoRequestSpecificHeaders;
-
-    public function __construct(
-        private string $paymentId
-    ) {
-    }
-
-    public function uri(): string
+    public function __construct(string $paymentId)
     {
-        return sprintf('/v1/payments/%s', $this->paymentId);
+        parent::__construct(
+            Method::GET,
+            sprintf('/v1/payments/%s', $paymentId),
+        );
     }
 }
 

@@ -72,6 +72,10 @@ composer require jschaedl/api-client
 
 ### Custom Requests and Responses
 
+### RetryClient
+
+### Testing with Mocks
+
 ---
 
 ## FAQ
@@ -81,6 +85,10 @@ composer require jschaedl/api-client
 ...
 
 **How can I send authentication information along with a request?**
+
+...
+
+**How can use a Client in my tests?**
 
 ...
 

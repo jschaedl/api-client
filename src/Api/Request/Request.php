@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace Api\Request;
 
-final class Request implements RequestInterface
+class Request implements RequestInterface
 {
-    private array $headers;
-    private ?array $body;
-
+    /**
+     * @param Header[] $headers
+     */
     public function __construct(
         public readonly Method $method,
-        public readonly string $uri
+        public readonly string $uri,
+        private array $headers = [],
+        private ?array $body = null,
     ) {
-        $this->headers = [];
-        $this->body = null;
     }
 
-    public function withHeader(string $name, string $value): self
+    public function addHeader(string $name, string $value): self
     {
-        $this->headers[$name] = $value;
+        $this->headers[] = new Header($name, $value);
 
         return $this;
     }
 
-    public function withBody(array $body): self
+    public function setBody(array $body): self
     {
         $this->body = $body;
 
@@ -41,6 +41,9 @@ final class Request implements RequestInterface
         return $this->uri;
     }
 
+    /**
+     * @return Header[]
+     */
     public function headers(): array
     {
         return $this->headers;

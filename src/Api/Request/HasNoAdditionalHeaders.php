@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Api\Request;
 
-trait HasNoRequestSpecificHeaders
+trait HasNoAdditionalHeaders
 {
     public function headers(): array
     {

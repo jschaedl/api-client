@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Api\Response\Handler;
 
+use Api\Response\Response;
 use Api\Response\ResponseHandlerInterface;
-use Psr\Http\Message\ResponseInterface as Psr7Response;
 use Webmozart\Assert\Assert;
 
-final class ChainResponseHandler implements ResponseHandlerInterface
+final readonly class ChainResponseHandler implements ResponseHandlerInterface
 {
     /**
      * @param ResponseHandlerInterface[] $responseHandlers
@@ -19,12 +19,12 @@ final class ChainResponseHandler implements ResponseHandlerInterface
         Assert::allIsInstanceOf($responseHandlers, ResponseHandlerInterface::class);
     }
 
-    public function handle(Psr7Response $psr7Response): Psr7Response
+    public function handle(Response $response): Response
     {
         foreach ($this->responseHandlers as $responseHandler) {
-            $psr7Response = $responseHandler->handle($psr7Response);
+            $response = $responseHandler->handle($response);
         }
 
-        return $psr7Response;
+        return $response;
     }
 }

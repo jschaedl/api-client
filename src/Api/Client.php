@@ -17,9 +17,6 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 final class Client implements ClientInterface
 {
-    private const UPPER = '_ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    private const LOWER = '-abcdefghijklmnopqrstuvwxyz';
-
     public function __construct(
         private readonly PsrClientInterface $httpClient,
         private readonly RequestFactoryInterface $requestFactory,
@@ -34,6 +31,11 @@ final class Client implements ClientInterface
 
     public function request(RequestInterface $request): ResponseInterface
     {
+        // execute request handler
+        if ($this->requestHandler) {
+            $request = $this->requestHandler->handle($request);
+        }
+
         $baseUri = rtrim($this->baseUri, '/');
         $requestUri = ltrim($request->uri(), '/');
 
@@ -53,35 +55,31 @@ final class Client implements ClientInterface
             $psr7Request = $psr7Request->withBody($stream);
         }
 
-        // execute request handler
-        if ($this->requestHandler) {
-            $psr7Request = $this->requestHandler->handle($psr7Request);
-        }
-
         // override "global" request headers by request specific headers
-        foreach ($request->headers() as $key => $value) {
-            $key = strtr($key, self::UPPER, self::LOWER);
-            $psr7Request = $psr7Request->withHeader($key, $value);
+        foreach ($request->headers() as $header) {
+            $psr7Request = $psr7Request->withHeader($header->name(), $header->value());
         }
 
         // send psr7 request
         $psr7Response = $this->httpClient->sendRequest($psr7Request);
 
-        // execute response handler
-        if ($this->responseHandler) {
-            $psr7Response = $this->responseHandler->handle($psr7Response);
-        }
-
         $body = $psr7Response->getBody()->getContents();
 
         // decode response body
-        if (null !== $this->responseBodyDecoder) {
+        if (!empty($body) && null !== $this->responseBodyDecoder) {
             $body = $this->responseBodyDecoder->decode($body);
         }
 
         $statusCode = $psr7Response->getStatusCode();
         $headers = $psr7Response->getHeaders();
 
-        return new Response($body, $statusCode, $headers);
+        $response = new Response($body, $statusCode, $headers);
+
+        // execute response handler
+        if ($this->responseHandler) {
+            $response = $this->responseHandler->handle($response);
+        }
+
+        return $response;
     }
 }

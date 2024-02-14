@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \Api\Request\IsPut
  * @covers \Api\Request\IsPatch
  * @covers \Api\Request\IsDelete
- * @covers \Api\Request\HasNoRequestSpecificHeaders
+ * @covers \Api\Request\HasNoAdditionalHeaders
  */
 final class TraitsTest extends TestCase
 {
@@ -61,5 +61,5 @@ class DeleteRequest
 
 class HasNoRequestSpecificHeadersRequest
 {
-    use HasNoRequestSpecificHeaders;
+    use HasNoAdditionalHeaders;
 }

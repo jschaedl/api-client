@@ -17,9 +17,12 @@ $apiClient = new Api\Client(
     'https://reqbin.com',
 );
 
-$request = new Request(Method::GET, '/echo/get/json');
-$request->withHeader('Accept', 'application/json');
-$request->withHeader('Content-Type', 'application/json');
+$request = new Request(Method::POST, '/echo/post/json');
+$request
+    ->addHeader('Accept', 'application/json')
+    ->addHeader('Content-Type', 'application/json')
+    ->setBody(['json' => true])
+;
 
 $response = $apiClient->request($request);
 

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Api;
 
 use Api\Exception\ServerException;
-use Api\Request\IsGet;
+use Api\Request\Method;
+use Api\Request\Request;
 use Api\Request\RequestInterface;
 use Api\Response\ResponseInterface;
 use PHPUnit\Framework\TestCase;
@@ -46,17 +47,13 @@ final class TestClient implements ClientInterface
     }
 }
 
-final class TestRequest implements RequestInterface
+final class TestRequest extends Request
 {
-    use IsGet;
-
-    public function uri(): string
+    public function __construct()
     {
-        return 'test';
-    }
-
-    public function headers(): array
-    {
-        return [];
+        parent::__construct(
+            Method::GET,
+            '/test'
+        );
     }
 }

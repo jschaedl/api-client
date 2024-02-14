@@ -7,9 +7,9 @@ namespace Api;
 use Api\Request\Encoder\JsonRequestBodyEncoder;
 use Api\Request\Handler\AddHeaderHandler;
 use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\HasNoRequestSpecificHeaders;
-use Api\Request\IsGet;
-use Api\Request\RequestInterface;
+use Api\Request\Header;
+use Api\Request\Method;
+use Api\Request\Request;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
 use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\TestCase;
@@ -27,7 +27,8 @@ use Symfony\Component\HttpClient\Psr18Client;
  * @uses \Api\Response\Decoder\JsonResponseBodyDecoder
  * @uses \Api\Response\Response
  * @uses \Api\Request\IsGet
- * @uses \Api\Request\HasNoRequestSpecificHeaders
+ * @uses \Api\Request\HasNoAdditionalHeaders
+ * @uses \Api\Request\Header
  *
  * @group e2e
  */
@@ -56,9 +57,9 @@ final class ClientsTest extends TestCase
             $streamFactory,
             'https://httpbin.org/',
             new ChainRequestHandler([
-                new AddHeaderHandler('Authorization', 'Bearer api_key'),
-                new AddHeaderHandler('Accept', 'application/json'),
-                new AddHeaderHandler('Content-Type', 'application/json'),
+                new AddHeaderHandler(new Header('Authorization', 'Bearer api_key')),
+                new AddHeaderHandler(new Header('Accept', 'application/json')),
+                new AddHeaderHandler(new Header('Content-Type', 'application/json')),
             ]),
             null,
             new JsonRequestBodyEncoder(),
@@ -79,13 +80,13 @@ final class ClientsTest extends TestCase
     }
 }
 
-class AnythingRequest implements RequestInterface
+class AnythingRequest extends Request
 {
-    use IsGet;
-    use HasNoRequestSpecificHeaders;
-
-    public function uri(): string
+    public function __construct()
     {
-        return '/anything';
+        parent::__construct(
+            Method::GET,
+            '/anything'
+        );
     }
 }
