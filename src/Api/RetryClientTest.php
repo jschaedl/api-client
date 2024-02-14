@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \Api\RetryClient
  *
+ * @uses \Api\Request\Request
  * @uses \Api\Exception\ResponseException
  * @uses \Api\Exception\ServerException
  *

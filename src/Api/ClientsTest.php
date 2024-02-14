@@ -20,6 +20,7 @@ use Symfony\Component\HttpClient\Psr18Client;
 /**
  * @covers \Api\Client
  *
+ * @uses \Api\Request\Request
  * @uses \Api\Request\Handler\ChainRequestHandler
  * @uses \Api\Request\Handler\AddHeaderHandler
  * @uses \Api\Request\Encoder\JsonRequestBodyEncoder
