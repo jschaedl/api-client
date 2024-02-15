@@ -44,7 +44,7 @@ final class Client implements ClientInterface
 
         $requestBody = $request->body();
 
-        if ($requestBody && $this->requestBodyEncoder) {
+        if ($requestBody && !$this->requestBodyEncoder) {
             throw new \RuntimeException('The request body is not empty, but no RequestBodyEncoder implementation was found. Did you forget to inject a RequestBodyEncoder?');
         }
 

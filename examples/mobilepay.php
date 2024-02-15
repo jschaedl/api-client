@@ -62,7 +62,7 @@ $mobilePayClient = new Client(
     $psr18HttpClient,
     $psr18HttpClient,
     $psr18HttpClient,
-    'https://api.sandbox.mobilepay.dk',
+    getEnvVarValue('MOBILEPAY_API_HOST'),
     requestHandler: $requestHandler,
     requestBodyEncoder: $requestBodyEncoder,
     responseBodyDecoder: $responseBodyDecoder,

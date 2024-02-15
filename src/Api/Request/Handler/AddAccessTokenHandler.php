@@ -7,10 +7,11 @@ namespace Api\Request\Handler;
 use Api\Request\RequestHandlerInterface;
 use Api\Request\RequestInterface;
 
-final readonly class AddAuthorizationHeaderTokenHandler implements RequestHandlerInterface
+final readonly class AddAccessTokenHandler implements RequestHandlerInterface
 {
     public function __construct(
-        private TokenProviderInterface $tokenProvider,
+        private AccessTokenProviderInterface $tokenProvider,
+        private string $headerName = 'Authorization',
     ) {
     }
 
@@ -18,6 +19,6 @@ final readonly class AddAuthorizationHeaderTokenHandler implements RequestHandle
     {
         $token = $this->tokenProvider->provideToken();
 
-        return $request->addHeader('Authorization', sprintf('%s %s', $token->type, $token->token));
+        return $request->addHeader($this->headerName, sprintf('%s %s', $token->type, $token->token));
     }
 }
