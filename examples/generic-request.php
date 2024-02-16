@@ -10,13 +10,14 @@ use Api\Request\Method;
 use Symfony\Component\HttpClient\Psr18Client;
 
 $psr18HttpClient = new Psr18Client();
+$requestBodyEncoder = new JsonRequestBodyEncoder();
 
 $apiClient = new Api\Client(
     $psr18HttpClient,
     $psr18HttpClient,
     $psr18HttpClient,
     'https://reqbin.com',
-    requestBodyEncoder: new JsonRequestBodyEncoder()
+    requestBodyEncoder: $requestBodyEncoder
 );
 
 $request = new Request(Method::POST, '/echo/post/json');

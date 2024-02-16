@@ -10,43 +10,29 @@ use Api\Request\Handler\AccessTokenProviderInterface;
 use Api\Request\Handler\AddAccessTokenHandler;
 use Api\Request\Handler\AddHeaderHandler;
 use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\IsPost;
 use Api\Request\Method;
 use Api\Request\Request;
-use Api\Request\RequestInterface;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
 use Api\Response\ResponseInterface;
 use Psl\Type\TypeInterface;
 use Symfony\Component\HttpClient\Psr18Client;
-
 use function Psl\Type\positive_int;
 use function Psl\Type\shape;
 use function Psl\Type\string;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-readonly class AccessTokenRequest implements RequestInterface
+class AccessTokenRequest extends Request
 {
-    use IsPost;
-
     public function __construct(
-        private string $clientId,
-        private string $clientSecret
+        string $clientId,
+        string $clientSecret
     ) {
-    }
-
-    public function uri(): string
-    {
-        return '/api/oauth/token';
-    }
-
-    public function body(): ?array
-    {
-        return [
+        parent::__construct(Method::POST, '/api/oauth/token', [
             'grant_type' => 'client_credentials',
-            'client_id' => $this->clientId,
-            'client_secret' => $this->clientSecret,
-        ];
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+        ]);
     }
 }
 
@@ -80,7 +66,38 @@ class AccessTokenResponse
     }
 }
 
+class AccessTokenProvider implements AccessTokenProviderInterface
+{
+    private static ?AccessToken $accessToken = null;
+
+    public function __construct(
+        private readonly ClientInterface $client,
+        private readonly string $clientId,
+        private readonly string $clientSecret
+    ) {
+    }
+
+    public function provideToken(): AccessToken
+    {
+        if (self::$accessToken && !self::$accessToken->isExpired(new DateTimeImmutable())) {
+            return self::$accessToken;
+        }
+
+        $accessTokenRequest = new AccessTokenRequest($this->clientId, $this->clientSecret);
+        $response = $this->client->request($accessTokenRequest);
+        $accessTokenResponse = AccessTokenResponse::fromResponse($response);
+
+        return self::$accessToken = new AccessToken(
+            $accessTokenResponse->tokenType,
+            $accessTokenResponse->accessToken,
+            (new DateTimeImmutable())->modify(sprintf('+%dseconds', $accessTokenResponse->expiresIn)),
+        );
+    }
+}
+
 $psr18HttpClient = new Psr18Client();
+$requestBodyEncoder = new JsonRequestBodyEncoder();
+$responseBodyDecoder = new JsonResponseBodyDecoder();
 
 $accessTokenClient = new Client(
     $psr18HttpClient,
@@ -91,41 +108,15 @@ $accessTokenClient = new Client(
         new AddHeaderHandler('Accept', 'application/json'),
         new AddHeaderHandler('Content-Type', 'application/json'),
     ]),
-    requestBodyEncoder: new JsonRequestBodyEncoder(),
-    responseBodyDecoder: new JsonResponseBodyDecoder(),
+    requestBodyEncoder: $requestBodyEncoder,
+    responseBodyDecoder: $responseBodyDecoder,
 );
 
-class AccessTokenProvider implements AccessTokenProviderInterface
-{
-    private static ?AccessToken $accessToken = null;
-
-    public function __construct(
-        private readonly ClientInterface $client
-    ) {
-    }
-
-    public function provideToken(): AccessToken
-    {
-        if (self::$accessToken && !self::$accessToken->isExpired(new DateTimeImmutable())) {
-            return self::$accessToken;
-        }
-
-        $accessTokenResponse = AccessTokenResponse::fromResponse(
-            $this->client->request(
-                new AccessTokenRequest(
-                    getEnvVarValue('SHOPWARE6_CLIENT_ID'),
-                    getEnvVarValue('SHOPWARE6_CLIENT_SECRET'),
-                )
-            )
-        );
-
-        return self::$accessToken = new AccessToken(
-            $accessTokenResponse->tokenType,
-            $accessTokenResponse->accessToken,
-            (new DateTimeImmutable())->modify(sprintf('+%dseconds', $accessTokenResponse->expiresIn)),
-        );
-    }
-}
+$accessTokenProvider = new AccessTokenProvider(
+    $accessTokenClient,
+    getEnvVarValue('SHOPWARE6_CLIENT_ID'),
+    getEnvVarValue('SHOPWARE6_CLIENT_SECRET'),
+);
 
 $shopware6AdminApiClient = new Client(
     $psr18HttpClient,
@@ -135,13 +126,10 @@ $shopware6AdminApiClient = new Client(
     requestHandler: new ChainRequestHandler([
         new AddHeaderHandler('Accept', 'application/json'),
         new AddHeaderHandler('Content-Type', 'application/json'),
-        new AddAccessTokenHandler(
-            new AccessTokenProvider($accessTokenClient),
-            'Authorization'
-        ),
+        new AddAccessTokenHandler($accessTokenProvider, 'Authorization'),
     ]),
-    requestBodyEncoder: new JsonRequestBodyEncoder(),
-    responseBodyDecoder: new JsonResponseBodyDecoder(),
+    requestBodyEncoder: $requestBodyEncoder,
+    responseBodyDecoder: $responseBodyDecoder,
 );
 
 $response = $shopware6AdminApiClient->request(

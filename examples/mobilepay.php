@@ -8,24 +8,21 @@ use Api\Client;
 use Api\Request\Encoder\JsonRequestBodyEncoder;
 use Api\Request\Handler\AddHeaderHandler;
 use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\RequestInterface;
-use Api\Request\IsGet;
+use Api\Request\Method;
+use Api\Request\Request;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
 use Api\Response\ResponseInterface;
 use Symfony\Component\HttpClient\Psr18Client;
 
-final class GetPaymentPointRequest implements RequestInterface
+final class GetPaymentPointRequest extends Request
 {
-    use IsGet;
-
     public function __construct(
-        private string $paymentId
+        string $paymentId
     ) {
-    }
-
-    public function uri(): string
-    {
-        return sprintf('/v1/payments/%s', $this->paymentId);
+        parent::__construct(
+            Method::GET,
+            sprintf('/v1/payments/%s', $paymentId)
+        );
     }
 }
 
@@ -53,11 +50,6 @@ final readonly class GetPaymentPointResponse
 }
 
 $psr18HttpClient = new Psr18Client();
-$requestHandler = new ChainRequestHandler([
-    new AddHeaderHandler('Accept', 'application/json'),
-    new AddHeaderHandler('Content-Type', 'application/json'),
-    new AddHeaderHandler('Authorization', getEnvVarValue('MOBILEPAY_API_KEY')),
-]);
 $requestBodyEncoder = new JsonRequestBodyEncoder();
 $responseBodyDecoder = new JsonResponseBodyDecoder();
 
@@ -66,17 +58,19 @@ $mobilePayClient = new Client(
     $psr18HttpClient,
     $psr18HttpClient,
     getEnvVarValue('MOBILEPAY_API_HOST'),
-    requestHandler: $requestHandler,
+    requestHandler: new ChainRequestHandler([
+        new AddHeaderHandler('Accept', 'application/json'),
+        new AddHeaderHandler('Content-Type', 'application/json'),
+        new AddHeaderHandler('Authorization', getEnvVarValue('MOBILEPAY_API_KEY')),
+    ]),
     requestBodyEncoder: $requestBodyEncoder,
     responseBodyDecoder: $responseBodyDecoder,
 );
 
-$response = GetPaymentPointResponse::fromResponse(
-    $mobilePayClient->request(
-        new GetPaymentPointRequest('682B0415-B90D-4DA1-852E-B0D107F9A07D')
-    )
-);
+$getPaymentPointRequest = new GetPaymentPointRequest('682B0415-B90D-4DA1-852E-B0D107F9A07D');
+$response = $mobilePayClient->request($getPaymentPointRequest);
+$getPaymentPointResponse = GetPaymentPointResponse::fromResponse($response);
 
-echo $response->paymentPointId;
-echo $response->paymentPointName;
-echo $response->state;
+echo $getPaymentPointResponse->paymentPointId;
+echo $getPaymentPointResponse->paymentPointName;
+echo $getPaymentPointResponse->state;
