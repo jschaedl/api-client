@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Api;
 
+use Api\Request\HeadersAwareRequestInterface;
 use Api\Request\RequestBodyEncoderInterface;
 use Api\Request\RequestHandlerInterface;
 use Api\Request\RequestInterface;
@@ -56,8 +57,10 @@ final class Client implements ClientInterface
         }
 
         // override "global" request headers by request specific headers
-        foreach ($request->headers() as $header) {
-            $psr7Request = $psr7Request->withHeader($header->name(), $header->value());
+        if ($request instanceof HeadersAwareRequestInterface) {
+            foreach ($request->headers() as $header) {
+                $psr7Request = $psr7Request->withHeader($header->name(), $header->value());
+            }
         }
 
         // send psr7 request

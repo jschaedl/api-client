@@ -10,8 +10,10 @@ use Api\Request\Handler\AccessTokenProviderInterface;
 use Api\Request\Handler\AddAccessTokenHandler;
 use Api\Request\Handler\AddHeaderHandler;
 use Api\Request\Handler\ChainRequestHandler;
+use Api\Request\IsPost;
 use Api\Request\Method;
 use Api\Request\Request;
+use Api\Request\RequestInterface;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
 use Api\Response\ResponseInterface;
 use Psl\Type\TypeInterface;
@@ -23,20 +25,28 @@ use function Psl\Type\string;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-class AccessTokenRequest extends Request
+readonly class AccessTokenRequest implements RequestInterface
 {
-    public function __construct(string $clientId, string $clientSecret)
+    use IsPost;
+
+    public function __construct(
+        private string $clientId,
+        private string $clientSecret
+    ) {
+    }
+
+    public function uri(): string
     {
-        parent::__construct(
-            Method::POST,
-            '/api/oauth/token',
-            [],
-            [
-                'grant_type' => 'client_credentials',
-                'client_id' => $clientId,
-                'client_secret' => $clientSecret,
-            ]
-        );
+        return '/api/oauth/token';
+    }
+
+    public function body(): ?array
+    {
+        return [
+            'grant_type' => 'client_credentials',
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+        ];
     }
 }
 
