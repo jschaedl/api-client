@@ -21,7 +21,7 @@ final class RetryTraitTest extends TestCase
 {
     public function test_no_retry(): void
     {
-        $testRetry = new class() {
+        $testRetry = new class {
             use RetryTrait;
 
             public function run(): ResponseInterface
@@ -35,7 +35,7 @@ final class RetryTraitTest extends TestCase
 
     public function test_retry_successful_before_max_attempts_reached(): void
     {
-        $testRetry = new class() {
+        $testRetry = new class {
             use RetryTrait;
 
             public function run(): ResponseInterface
@@ -67,7 +67,7 @@ final class RetryTraitTest extends TestCase
 
     public function test_retry_throws_exception_after_maximum_retries(): void
     {
-        $testRetry = new class() {
+        $testRetry = new class {
             use RetryTrait;
 
             public function run(): ResponseInterface
@@ -97,7 +97,7 @@ final class RetryTraitTest extends TestCase
 
     public function test_retry_re_throws_exception(): void
     {
-        $testRetry = new class() {
+        $testRetry = new class {
             use RetryTrait;
 
             public function run(): ResponseInterface
@@ -114,7 +114,7 @@ final class RetryTraitTest extends TestCase
 
     public function test_retry_throws_exception_on_negative_attempts(): void
     {
-        $testRetry = new class() {
+        $testRetry = new class {
             use RetryTrait;
 
             public function run(): ResponseInterface
