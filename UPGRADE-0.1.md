@@ -2,6 +2,13 @@
 
 0.1.0 supports PHP 8.2 to 8.5 and reworks retries and error handling. These changes need action.
 
+## Requirements
+
+- PHP 8.2 to 8.5.
+- `psr/http-factory` 1.1 or newer (1.0 declares implicitly nullable parameters, which PHP 8.4
+  deprecates).
+- `psr/clock` is a new dependency.
+
 ## Errors are thrown by default
 
 `Client` now throws on every 4xx/5xx response: `ClientException` / `ServerException`, both
