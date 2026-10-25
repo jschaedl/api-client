@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-use Api\Client;
-use Api\Request\Encoder\JsonRequestBodyEncoder;
-use Api\Request\Handler\AddHeaderHandler;
-use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\Method;
-use Api\Request\Request;
-use Api\Response\Decoder\JsonResponseBodyDecoder;
-use Api\Response\ResponseInterface;
+use Jschaedl\ApiClient\Client;
+use Jschaedl\ApiClient\Request\Encoder\JsonRequestBodyEncoder;
+use Jschaedl\ApiClient\Request\Handler\AddHeaderHandler;
+use Jschaedl\ApiClient\Request\Handler\ChainRequestHandler;
+use Jschaedl\ApiClient\Request\Method;
+use Jschaedl\ApiClient\Request\Request;
+use Jschaedl\ApiClient\Response\Decoder\JsonResponseBodyDecoder;
+use Jschaedl\ApiClient\Response\ResponseInterface;
 use Symfony\Component\HttpClient\Psr18Client;
 
 final class GetPaymentPointRequest extends Request

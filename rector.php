@@ -16,7 +16,7 @@ return static function (RectorConfig $rectorConfig): void {
         // bug: rector ends in an error refactoring this class
         //__DIR__.'/src/MobilePay/AppPayment/PaymentPoints/PaymentPointState.php',
         // bug: rector applies FinalizeClassesWithoutChildrenRector
-        //__DIR__.'/src/Api/Exception/ClientException.php',
+        //__DIR__.'/src/Exception/ClientException.php',
     ]);
 
     $rectorConfig->rules([

@@ -61,12 +61,12 @@ composer require jschaedl/api-client
 Runnable examples live in [`examples/`](examples) (Shopware 5/6, MobilePay, a generic request).
 
 ```php
-use Api\Client;
-use Api\Request\Encoder\JsonRequestBodyEncoder;
-use Api\Request\Handler\AddHeaderHandler;
-use Api\Request\Method;
-use Api\Request\Request;
-use Api\Response\Decoder\JsonResponseBodyDecoder;
+use Jschaedl\ApiClient\Client;
+use Jschaedl\ApiClient\Request\Encoder\JsonRequestBodyEncoder;
+use Jschaedl\ApiClient\Request\Handler\AddHeaderHandler;
+use Jschaedl\ApiClient\Request\Method;
+use Jschaedl\ApiClient\Request\Request;
+use Jschaedl\ApiClient\Response\Decoder\JsonResponseBodyDecoder;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\Psr18Client;
 
@@ -110,7 +110,7 @@ PDF download or an HTML error page is never run through a JSON decoder unless yo
 ### Error handling
 
 By default the client throws on every 4xx/5xx response. All exceptions implement
-`Api\Exception\ApiExceptionInterface`:
+`Jschaedl\ApiClient\Exception\ApiExceptionInterface`:
 
 | Exception | When | `getCode()` |
 | --- | --- | --- |
@@ -180,8 +180,8 @@ honoured; if it asks for longer than `maxDelay`, the request is not retried. `ma
 the whole sequence, waits included.
 
 ```php
-use Api\RetryClient;
-use Api\Retry\GenericRetryStrategy;
+use Jschaedl\ApiClient\RetryClient;
+use Jschaedl\ApiClient\Retry\GenericRetryStrategy;
 
 $client = new RetryClient(
     $client,
@@ -201,11 +201,11 @@ Pass a PSR-3 `logger` to have every retry logged at info level (and every retry 
 prevents). Entries name method and path only, never the query string or a body; status code,
 retry count and delay are in the context.
 
-Waiting and the deadline go through `Api\Clock\ClockInterface` (`NativeClock` by default). To use
+Waiting and the deadline go through `Jschaedl\ApiClient\Clock\ClockInterface` (`NativeClock` by default). To use
 a Symfony clock, e.g. the framework's `clock` service, wrap it in `SymfonyClockAdapter`:
 
 ```php
-use Api\Clock\SymfonyClockAdapter;
+use Jschaedl\ApiClient\Clock\SymfonyClockAdapter;
 
 $clock = new SymfonyClockAdapter($symfonyClock); // requires symfony/clock
 
@@ -214,7 +214,7 @@ new RetryClient($client, new GenericRetryStrategy(clock: $clock), clock: $clock)
 
 ### Testing with Mocks
 
-`Api\Testing\MockClient` answers requests from a queue and records them, which is handy for
+`Jschaedl\ApiClient\Testing\MockClient` answers requests from a queue and records them, which is handy for
 testing code that uses a client. Error responses are thrown as `ResponseException`, like the real client
 does:
 
@@ -229,7 +229,7 @@ $client = new MockClient([
 self::assertCount(2, $client->requests());
 ```
 
-`Api\Clock\MockClock` (or Symfony's `MockClock` through `SymfonyClockAdapter`) advances its time on `sleep()` instead of waiting. Pass it to `RetryClient`
+`Jschaedl\ApiClient\Clock\MockClock` (or Symfony's `MockClock` through `SymfonyClockAdapter`) advances its time on `sleep()` instead of waiting. Pass it to `RetryClient`
 and `GenericRetryStrategy` to test retries without delays; `sleeps()` returns the waits.
 
 To test the `Client` itself without network access, wrap Symfony's `MockHttpClient` in a
@@ -254,9 +254,10 @@ keys.
 
 See [Testing with Mocks](#testing-with-mocks).
 
-**How do I upgrade from 0.0.1?**
+**How do I upgrade?**
 
-See [UPGRADE-0.1.md](UPGRADE-0.1.md).
+From 0.1.x see [UPGRADE-0.2.md](UPGRADE-0.2.md) (namespace change), from 0.0.1 first see
+[UPGRADE-0.1.md](UPGRADE-0.1.md).
 
 ---
 

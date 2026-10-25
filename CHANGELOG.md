@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- **Breaking:** all classes move from `Api\` to `Jschaedl\ApiClient\`, and the sources from
+  `src/Api/` to `src/`. See [UPGRADE-0.2.md](UPGRADE-0.2.md).
+
 ## 0.1.1
 
 - Allow `webmozart/assert` 2.x (`^1.11||^2.0`).

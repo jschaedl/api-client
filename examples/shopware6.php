@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use Api\Client;
-use Api\ClientInterface;
-use Api\Request\Encoder\JsonRequestBodyEncoder;
-use Api\Request\Handler\AccessToken;
-use Api\Request\Handler\AccessTokenProviderInterface;
-use Api\Request\Handler\AddAccessTokenHandler;
-use Api\Request\Handler\AddHeaderHandler;
-use Api\Request\Handler\ChainRequestHandler;
-use Api\Request\Method;
-use Api\Request\Request;
-use Api\Response\Decoder\JsonResponseBodyDecoder;
-use Api\Response\ResponseInterface;
+use Jschaedl\ApiClient\Client;
+use Jschaedl\ApiClient\ClientInterface;
+use Jschaedl\ApiClient\Request\Encoder\JsonRequestBodyEncoder;
+use Jschaedl\ApiClient\Request\Handler\AccessToken;
+use Jschaedl\ApiClient\Request\Handler\AccessTokenProviderInterface;
+use Jschaedl\ApiClient\Request\Handler\AddAccessTokenHandler;
+use Jschaedl\ApiClient\Request\Handler\AddHeaderHandler;
+use Jschaedl\ApiClient\Request\Handler\ChainRequestHandler;
+use Jschaedl\ApiClient\Request\Method;
+use Jschaedl\ApiClient\Request\Request;
+use Jschaedl\ApiClient\Response\Decoder\JsonResponseBodyDecoder;
+use Jschaedl\ApiClient\Response\ResponseInterface;
 use Symfony\Component\HttpClient\Psr18Client;
 
 require_once __DIR__.'/../vendor/autoload.php';
