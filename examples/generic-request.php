@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-use Api\Request\Encoder\JsonRequestBodyEncoder;
-use Api\Request\Request;
-use Api\Request\Method;
+use Jschaedl\ApiClient\Request\Encoder\JsonRequestBodyEncoder;
+use Jschaedl\ApiClient\Request\Request;
+use Jschaedl\ApiClient\Request\Method;
 use Symfony\Component\HttpClient\Psr18Client;
 
 $psr18HttpClient = new Psr18Client();
 $requestBodyEncoder = new JsonRequestBodyEncoder();
 
-$apiClient = new Api\Client(
+$apiClient = new Jschaedl\ApiClient\Client(
     $psr18HttpClient,
     $psr18HttpClient,
     $psr18HttpClient,
@@ -31,6 +31,6 @@ try {
 
     var_dump($response->statusCode());
     var_dump($response->body());
-} catch (Api\Exception\ApiExceptionInterface $exception) {
+} catch (Jschaedl\ApiClient\Exception\ApiExceptionInterface $exception) {
     var_dump($exception->getMessage());
 }

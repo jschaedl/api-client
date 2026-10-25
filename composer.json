@@ -18,7 +18,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "Api\\": "src/Api"
+      "Jschaedl\\ApiClient\\": "src/"
     },
     "files": [
       "examples/_function.php"
