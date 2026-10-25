@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
 
 #[CoversClass(RetryClient::class)]
 #[UsesClass(GenericRetryStrategy::class)]
@@ -125,6 +126,47 @@ final class RetryClientTest extends TestCase
         }
     }
 
+    public function test_retries_are_logged_without_the_query_string(): void
+    {
+        $logger = new RecordingLogger();
+        $inner = new MockClient([new Response('', 503), new TransportException(new Request(Method::GET, 'items'), new \RuntimeException()), new Response('ok', 200)]);
+
+        $this->retryClient($inner, logger: $logger)->request(new Request(Method::GET, 'items?token=secret'));
+
+        self::assertSame([
+            ['info', 'Retrying "{request}" after {failure} in {delay}s (retry {retry} of {max_retries}).', ['request' => 'GET items', 'failure' => 'HTTP 503', 'status_code' => 503, 'retry' => 1, 'max_retries' => 3, 'delay' => 1.0, 'max_duration' => null]],
+            ['info', 'Retrying "{request}" after {failure} in {delay}s (retry {retry} of {max_retries}).', ['request' => 'GET items', 'failure' => 'a network error', 'status_code' => null, 'retry' => 2, 'max_retries' => 3, 'delay' => 2.0, 'max_duration' => null]],
+        ], $logger->records);
+    }
+
+    public function test_a_retry_prevented_by_the_deadline_is_logged(): void
+    {
+        $logger = new RecordingLogger();
+        $inner = new MockClient([new Response('', 503), new Response('', 503)]);
+
+        try {
+            $this->retryClient($inner, maxDuration: 2.5, logger: $logger)->request(new Request(Method::GET, 'items'));
+            self::fail('No exception thrown.');
+        } catch (ServerException) {
+            self::assertCount(2, $logger->records);
+            self::assertSame('Not retrying "{request}" after {failure}: waiting {delay}s would pass the {max_duration}s deadline.', $logger->records[1][1]);
+            self::assertSame(2.5, $logger->records[1][2]['max_duration']);
+        }
+    }
+
+    public function test_requests_that_are_not_retried_are_not_logged(): void
+    {
+        $logger = new RecordingLogger();
+        $inner = new MockClient([new Response('', 503)]);
+
+        try {
+            $this->retryClient($inner, logger: $logger)->request(new Request(Method::POST, 'items', ['a' => 1]));
+            self::fail('No exception thrown.');
+        } catch (ServerException) {
+            self::assertSame([], $logger->records);
+        }
+    }
+
     public function test_other_exceptions_are_not_retried(): void
     {
         $inner = new MockClient([new \LogicException('bug'), new Response('ok', 200)]);
@@ -142,7 +184,7 @@ final class RetryClientTest extends TestCase
         $this->retryClient(new MockClient(), maxRetries: -1);
     }
 
-    private function retryClient(MockClient $inner, int $maxRetries = 3, ?float $maxDuration = null): RetryClient
+    private function retryClient(MockClient $inner, int $maxRetries = 3, ?float $maxDuration = null, ?RecordingLogger $logger = null): RetryClient
     {
         return new RetryClient(
             $inner,
@@ -150,6 +192,24 @@ final class RetryClientTest extends TestCase
             $maxRetries,
             $maxDuration,
             $this->clock,
+            $logger ?? new RecordingLogger(),
         );
+    }
+}
+
+final class RecordingLogger extends AbstractLogger
+{
+    /** @var list<array{mixed, string, array<mixed>}> */
+    public array $records = [];
+
+    /**
+     * $message stays untyped: psr/log 1.x declares it without a type, and a typed override would be incompatible.
+     *
+     * @param string|\Stringable $message
+     * @param array<mixed>       $context
+     */
+    public function log($level, $message, array $context = []): void
+    {
+        $this->records[] = [$level, (string) $message, $context];
     }
 }
