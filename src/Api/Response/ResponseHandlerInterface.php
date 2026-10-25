@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Api\Response;
 
-use Api\Exception\ResponseException;
+use Api\Request\RequestInterface;
 
+/**
+ * Runs before the client checks the status code, so a handler can turn an expected
+ * error response (e.g. 404 = "member not found") into a domain exception of its own.
+ */
 interface ResponseHandlerInterface
 {
-    /**
-     * @throws ResponseException
-     */
-    public function handle(Response $response): Response;
+    public function handle(ResponseInterface $response, RequestInterface $request): ResponseInterface;
 }

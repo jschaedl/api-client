@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Api;
 
+use Api\Exception\ResponseException;
+use Api\Exception\TransportException;
+use Api\Request\BodyEncoderAwareRequestInterface;
 use Api\Request\HeadersAwareRequestInterface;
 use Api\Request\RequestBodyEncoderInterface;
 use Api\Request\RequestHandlerInterface;
@@ -12,77 +15,102 @@ use Api\Response\Response;
 use Api\Response\ResponseBodyDecoderInterface;
 use Api\Response\ResponseHandlerInterface;
 use Api\Response\ResponseInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface as Psr7RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
-final class Client implements ClientInterface
+/**
+ * Timeouts are a property of the PSR-18 client you pass in (PSR-18 has no per-request
+ * options): configure them there, e.g. `new Psr18Client(HttpClient::create(['timeout' => 10]))`.
+ *
+ * @see ClientTest
+ */
+final readonly class Client implements ClientInterface
 {
     public function __construct(
-        private readonly PsrClientInterface $httpClient,
-        private readonly RequestFactoryInterface $requestFactory,
-        private readonly StreamFactoryInterface $streamFactory,
-        private readonly string $baseUri,
-        private readonly ?RequestHandlerInterface $requestHandler = null,
-        private readonly ?ResponseHandlerInterface $responseHandler = null,
-        private readonly ?RequestBodyEncoderInterface $requestBodyEncoder = null,
-        private readonly ?ResponseBodyDecoderInterface $responseBodyDecoder = null,
+        private PsrClientInterface $httpClient,
+        private RequestFactoryInterface $requestFactory,
+        private StreamFactoryInterface $streamFactory,
+        private string $baseUri,
+        private ?RequestHandlerInterface $requestHandler = null,
+        private ?ResponseHandlerInterface $responseHandler = null,
+        private ?RequestBodyEncoderInterface $requestBodyEncoder = null,
+        private ?ResponseBodyDecoderInterface $responseBodyDecoder = null,
+        private bool $throwOnErrorStatus = true,
     ) {
     }
 
     public function request(RequestInterface $request): ResponseInterface
     {
-        // execute request handler
-        if ($this->requestHandler) {
+        if ($this->requestHandler instanceof RequestHandlerInterface) {
             $request = $this->requestHandler->handle($request);
         }
 
-        $baseUri = rtrim($this->baseUri, '/');
-        $requestUri = ltrim($request->uri(), '/');
+        $psr7Request = $this->createPsr7Request($request);
 
-        // create psr7 request
-        $psr7Request = $this->requestFactory->createRequest($request->method(), $baseUri.'/'.$requestUri);
-
-        $requestBody = $request->body();
-
-        if ($requestBody && !$this->requestBodyEncoder) {
-            throw new \RuntimeException('The request body is not empty, but no RequestBodyEncoder implementation was found. Did you forget to inject a RequestBodyEncoder?');
+        try {
+            $psr7Response = $this->httpClient->sendRequest($psr7Request);
+            // the body may break off mid-read, which is a transport failure as well
+            $rawBody = (string) $psr7Response->getBody();
+        } catch (ClientExceptionInterface|\RuntimeException $exception) {
+            throw new TransportException($request, $exception);
         }
 
-        // encode request body
-        if ($requestBody && $this->requestBodyEncoder) {
-            $encodedRequestBody = $this->requestBodyEncoder->encode($requestBody);
-            $stream = $this->streamFactory->createStream($encodedRequestBody);
-            $psr7Request = $psr7Request->withBody($stream);
+        $headers = [];
+        foreach ($psr7Response->getHeaders() as $name => $values) {
+            $headers[(string) $name] = array_values($values);
         }
 
-        // override "global" request headers by request specific headers
+        $response = new Response($rawBody, $psr7Response->getStatusCode(), $headers, $this->responseBodyDecoder);
+
+        if ($this->responseHandler instanceof ResponseHandlerInterface) {
+            $response = $this->responseHandler->handle($response, $request);
+        }
+
+        if ($this->throwOnErrorStatus && $response->statusCode() >= 400) {
+            throw ResponseException::create($request, $response);
+        }
+
+        return $response;
+    }
+
+    private function createPsr7Request(RequestInterface $request): Psr7RequestInterface
+    {
+        $uri = rtrim($this->baseUri, '/').'/'.ltrim($request->uri(), '/');
+        $psr7Request = $this->requestFactory->createRequest($request->method(), $uri);
+
+        $body = $request->body();
+
+        if (\is_array($body)) {
+            $encoder = $this->resolveEncoder($request);
+            $psr7Request = $psr7Request
+                ->withHeader('Content-Type', $encoder->contentType())
+                ->withBody($this->streamFactory->createStream($encoder->encode($body)));
+        } elseif (\is_string($body)) {
+            $psr7Request = $psr7Request->withBody($this->streamFactory->createStream($body));
+        }
+
+        // request specific headers win over everything set above, Content-Type included
         if ($request instanceof HeadersAwareRequestInterface) {
             foreach ($request->headers() as $header) {
                 $psr7Request = $psr7Request->withHeader($header->name(), $header->value());
             }
         }
 
-        // send psr7 request
-        $psr7Response = $this->httpClient->sendRequest($psr7Request);
+        return $psr7Request;
+    }
 
-        $body = $psr7Response->getBody()->getContents();
+    private function resolveEncoder(RequestInterface $request): RequestBodyEncoderInterface
+    {
+        $encoder = $request instanceof BodyEncoderAwareRequestInterface ? $request->bodyEncoder() : null;
+        $encoder ??= $this->requestBodyEncoder;
 
-        // decode response body
-        if (!empty($body) && null !== $this->responseBodyDecoder) {
-            $body = $this->responseBodyDecoder->decode($body);
+        if (!$encoder instanceof RequestBodyEncoderInterface) {
+            throw new \LogicException('The request body is an array, but no RequestBodyEncoder was found. Inject one into the Client or set one on the request.');
         }
 
-        $statusCode = $psr7Response->getStatusCode();
-        $headers = $psr7Response->getHeaders();
-
-        $response = new Response($body, $statusCode, $headers);
-
-        // execute response handler
-        if ($this->responseHandler) {
-            $response = $this->responseHandler->handle($response);
-        }
-
-        return $response;
+        return $encoder;
     }
 }

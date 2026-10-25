@@ -60,7 +60,6 @@ $mobilePayClient = new Client(
     getEnvVarValue('MOBILEPAY_API_HOST'),
     requestHandler: new ChainRequestHandler([
         new AddHeaderHandler('Accept', 'application/json'),
-        new AddHeaderHandler('Content-Type', 'application/json'),
         new AddHeaderHandler('Authorization', getEnvVarValue('MOBILEPAY_API_KEY')),
     ]),
     requestBodyEncoder: $requestBodyEncoder,

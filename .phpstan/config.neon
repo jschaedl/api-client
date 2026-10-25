@@ -7,7 +7,6 @@ parameters:
 
   level: max
 
-  checkMissingIterableValueType: false
   reportUnmatchedIgnoredErrors: true
   treatPhpDocTypesAsCertain: false
 

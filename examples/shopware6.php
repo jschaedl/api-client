@@ -14,11 +14,7 @@ use Api\Request\Method;
 use Api\Request\Request;
 use Api\Response\Decoder\JsonResponseBodyDecoder;
 use Api\Response\ResponseInterface;
-use Psl\Type\TypeInterface;
 use Symfony\Component\HttpClient\Psr18Client;
-use function Psl\Type\positive_int;
-use function Psl\Type\shape;
-use function Psl\Type\string;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
@@ -47,22 +43,17 @@ class AccessTokenResponse
 
     public static function fromResponse(ResponseInterface $response): self
     {
-        $body = self::type()->coerce($response->body());
+        $body = $response->body();
 
-        return new self(
-            $body['token_type'],
-            $body['expires_in'],
-            $body['access_token'],
-        );
-    }
+        if (!is_array($body)
+            || !is_string($body['token_type'] ?? null)
+            || !is_int($body['expires_in'] ?? null) || $body['expires_in'] < 1
+            || !is_string($body['access_token'] ?? null)
+        ) {
+            throw new UnexpectedValueException('Unexpected access token response.');
+        }
 
-    private static function type(): TypeInterface
-    {
-        return shape([
-            'token_type' => string(),
-            'expires_in' => positive_int(),
-            'access_token' => string(),
-        ], true);
+        return new self($body['token_type'], $body['expires_in'], $body['access_token']);
     }
 }
 
@@ -106,7 +97,6 @@ $accessTokenClient = new Client(
     getEnvVarValue('SHOPWARE6_API_HOST'),
     requestHandler: new ChainRequestHandler([
         new AddHeaderHandler('Accept', 'application/json'),
-        new AddHeaderHandler('Content-Type', 'application/json'),
     ]),
     requestBodyEncoder: $requestBodyEncoder,
     responseBodyDecoder: $responseBodyDecoder,
@@ -125,7 +115,6 @@ $shopware6AdminApiClient = new Client(
     getEnvVarValue('SHOPWARE6_API_HOST'),
     requestHandler: new ChainRequestHandler([
         new AddHeaderHandler('Accept', 'application/json'),
-        new AddHeaderHandler('Content-Type', 'application/json'),
         new AddAccessTokenHandler($accessTokenProvider, 'Authorization'),
     ]),
     requestBodyEncoder: $requestBodyEncoder,

@@ -4,25 +4,37 @@ declare(strict_types=1);
 
 namespace Api\Request;
 
-class Request implements HeadersAwareRequestInterface
+class Request implements HeadersAwareRequestInterface, BodyEncoderAwareRequestInterface
 {
     use HeadersAwareRequestTrait;
 
     /**
-     * @param Header[] $headers
+     * @param array<mixed>|string|null $body
+     * @param Header[]                 $headers
      */
     public function __construct(
         public readonly Method $method,
         public readonly string $uri,
-        private ?array $body = null,
+        private array|string|null $body = null,
         array $headers = [],
+        private ?RequestBodyEncoderInterface $bodyEncoder = null,
     ) {
         $this->headers = $headers;
     }
 
-    public function setBody(array $body): self
+    /**
+     * @param array<mixed>|string $body
+     */
+    public function setBody(array|string $body): self
     {
         $this->body = $body;
+
+        return $this;
+    }
+
+    public function setBodyEncoder(RequestBodyEncoderInterface $bodyEncoder): self
+    {
+        $this->bodyEncoder = $bodyEncoder;
 
         return $this;
     }
@@ -37,8 +49,13 @@ class Request implements HeadersAwareRequestInterface
         return $this->uri;
     }
 
-    public function body(): ?array
+    public function body(): array|string|null
     {
         return $this->body;
+    }
+
+    public function bodyEncoder(): ?RequestBodyEncoderInterface
+    {
+        return $this->bodyEncoder;
     }
 }

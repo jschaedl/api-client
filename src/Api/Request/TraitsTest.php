@@ -4,21 +4,23 @@ declare(strict_types=1);
 
 namespace Api\Request;
 
+use PHPUnit\Framework\Attributes\CoversTrait;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \Api\Request\IsGet
- * @covers \Api\Request\IsPost
- * @covers \Api\Request\IsPut
- * @covers \Api\Request\IsPatch
- * @covers \Api\Request\IsDelete
- */
+#[CoversTrait(IsGet::class)]
+#[CoversTrait(IsPost::class)]
+#[CoversTrait(IsPut::class)]
+#[CoversTrait(IsPatch::class)]
+#[CoversTrait(IsDelete::class)]
+#[UsesClass(Method::class)]
+#[Group('unit')]
 final class TraitsTest extends TestCase
 {
     public function test_traits(): void
     {
         self::assertSame(Method::GET->value, (new GetRequest())->method());
-        self::assertSame(null, (new GetRequest())->body());
 
         self::assertSame(Method::POST->value, (new PostRequest())->method());
 
@@ -27,7 +29,6 @@ final class TraitsTest extends TestCase
         self::assertSame(Method::PATCH->value, (new PatchRequest())->method());
 
         self::assertSame(Method::DELETE->value, (new DeleteRequest())->method());
-        self::assertSame(null, (new DeleteRequest())->body());
     }
 }
 

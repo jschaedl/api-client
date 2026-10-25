@@ -11,7 +11,7 @@ trait IsDelete
         return Method::DELETE->value;
     }
 
-    public function body(): ?array
+    public function body(): null
     {
         return null;
     }

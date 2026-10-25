@@ -6,5 +6,8 @@ namespace Api\Response;
 
 interface ResponseBodyDecoderInterface
 {
-    public function decode(string $responseBody): array;
+    /**
+     * @throws \Throwable when the body cannot be decoded; Response turns it into a DecodingException
+     */
+    public function decode(string $responseBody): mixed;
 }

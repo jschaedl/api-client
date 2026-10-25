@@ -17,7 +17,7 @@ jobs:
       - name: "Setup PHP"
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.2
+          php-version: 8.5
           coverage: none
 
       - name: "Install dependencies"
@@ -38,7 +38,7 @@ jobs:
       - name: "Setup PHP"
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.2
+          php-version: 8.5
           coverage: none
 
       - name: "Install dependencies"
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: [ '8.2', '8.3' ]
+        php-version: [ '8.2', '8.3', '8.4', '8.5' ]
         prefer-lowest: ['', '--prefer-lowest --prefer-stable']
         coverage-driver: [ 'xdebug' ]
 

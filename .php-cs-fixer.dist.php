@@ -12,13 +12,12 @@ $finder = (new PhpCsFixer\Finder())
 
 return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
+    // the tools run on the newest PHP; the migration rule sets below keep the code at the PHP 8.2 floor
+    ->setUnsupportedPhpVersionAllowed(true)
     ->setRules([
         '@Symfony' => true,
-        '@PHP80Migration' => true,
-        '@PHP80Migration:risky' => true,
-        '@PHP81Migration' => true,
-        '@PHP82Migration' => true,
-        '@PHP83Migration' => true,
+        '@PHP8x2Migration:risky' => true,
+        '@PHP8x2Migration' => true,
         'php_unit_method_casing' => false,
         'php_unit_test_case_static_method_calls' => ['call_type' => 'self'],
     ])

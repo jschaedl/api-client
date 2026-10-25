@@ -12,7 +12,8 @@ parameters:
       function: 12
 
   type_coverage:
-      return_type: 78
-      param_type: 84
-      property_type: 20
-      print_suggestions: false
+      return_type: 99
+      param_type: 99
+      property_type: 99
+      # typed class constants need PHP 8.3; raise once PHP 8.2 support is dropped
+      constant_type: 0
