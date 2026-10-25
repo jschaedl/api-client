@@ -9,11 +9,10 @@ use Api\Response\ResponseBodyDecoderInterface;
 final class JsonResponseBodyDecoder implements ResponseBodyDecoderInterface
 {
     /**
-     * @return mixed[]
+     * @throws \JsonException
      */
-    public function decode(string $responseBody): array
+    public function decode(string $responseBody): mixed
     {
-        // todo: handle json errors and types
-        return (array) json_decode($responseBody, associative: true, flags: JSON_THROW_ON_ERROR);
+        return json_decode($responseBody, associative: true, flags: \JSON_THROW_ON_ERROR);
     }
 }

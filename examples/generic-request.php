@@ -23,7 +23,6 @@ $apiClient = new Api\Client(
 $request = new Request(Method::POST, '/echo/post/json');
 $request
     ->addHeader('Accept', 'application/json')
-    ->addHeader('Content-Type', 'application/json')
     ->setBody(['json' => true])
 ;
 
@@ -32,6 +31,6 @@ try {
 
     var_dump($response->statusCode());
     var_dump($response->body());
-} catch (Exception $exception) {
+} catch (Api\Exception\ApiExceptionInterface $exception) {
     var_dump($exception->getMessage());
 }

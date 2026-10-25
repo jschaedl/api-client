@@ -15,7 +15,6 @@ $shopware5AdminApiClient = new Api\Client(
     getEnvVarValue('SHOPWARE5_API_HOST'),
     requestHandler: new Api\Request\Handler\ChainRequestHandler([
         new Api\Request\Handler\AddHeaderHandler('Accept', 'application/json'),
-        new Api\Request\Handler\AddHeaderHandler('Content-Type', 'application/json'),
         new Api\Request\Handler\AddHeaderHandler(
             'Authorization',
             'Basic'.base64_encode(sprintf('%s:%s', getEnvVarValue('SHOPWARE5_API_USER'), getEnvVarValue('SHOPWARE5_API_KEY')))

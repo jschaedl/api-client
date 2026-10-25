@@ -10,5 +10,10 @@ interface RequestInterface
 
     public function uri(): string;
 
-    public function body(): ?array;
+    /**
+     * An array is encoded by a RequestBodyEncoderInterface, a string is sent as it is.
+     *
+     * @return array<mixed>|string|null
+     */
+    public function body(): array|string|null;
 }

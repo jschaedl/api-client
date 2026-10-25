@@ -11,7 +11,7 @@ trait IsGet
         return Method::GET->value;
     }
 
-    public function body(): ?array
+    public function body(): null
     {
         return null;
     }
